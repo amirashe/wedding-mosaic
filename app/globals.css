@@ -1,0 +1,11 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Rubik', sans-serif;
+  direction: rtl;
+  background: linear-gradient(160deg, #d4f5e9 0%, #a8edca 60%, #b8f0d8 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: #1e2e1e;
+  -webkit-font-smoothing: antialiased;
+}

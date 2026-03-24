@@ -7,11 +7,15 @@ export default function AdminPage() {
   const [images,          setImages]          = useState([])
   const [loading,         setLoading]         = useState(true)
   const [targetUrl,       setTargetUrl]       = useState(null)
+  const [guestUrl,        setGuestUrl]        = useState('')
   const [mosaicStatus,    setMosaicStatus]    = useState('idle')  // idle | running | done | error
   const [mosaicUrl,       setMosaicUrl]       = useState(null)
   const [uploadingTarget, setUploadingTarget] = useState(false)
 
-  useEffect(() => { fetchImages() }, [])
+  useEffect(() => {
+    fetchImages()
+    setGuestUrl(window.location.origin)
+  }, [])
 
   const fetchImages = async () => {
     setLoading(true)
@@ -75,6 +79,20 @@ export default function AdminPage() {
     <div className={s.page}>
       <h1 className={s.title}>⚙️ ניהול מוזאיקה</h1>
       <p className={s.sub}>חתונת מעיין ואמיר 💑</p>
+
+      {/* QR Code */}
+      {guestUrl && (
+        <div className={s.card} style={{ textAlign: 'center' }}>
+          <h2 className={s.cardTitle}>📱 QR Code לאורחים</h2>
+          <p className={s.hint}>אורחים סורקים את זה כדי להעלות תמונות</p>
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(guestUrl)}&margin=10`}
+            alt="QR Code"
+            style={{ borderRadius: 12, border: '4px solid #f3f3f3', maxWidth: 220 }}
+          />
+          <p style={{ fontSize: 13, color: '#999', marginTop: 8, wordBreak: 'break-all' }}>{guestUrl}</p>
+        </div>
+      )}
 
       {/* Stats */}
       <div className={s.statsRow}>

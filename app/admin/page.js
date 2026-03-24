@@ -129,9 +129,21 @@ export default function AdminPage() {
           <div className={s.mosaicDone}>
             <p className={s.doneText}>✅ המוזאיקה מוכנה!</p>
             <img src={mosaicUrl} alt="mosaic" className={s.mosaicPreview} />
-            <a href={mosaicUrl} download className={`${s.btn} ${s.btnPrimary}`} target="_blank" rel="noreferrer">
+            <button
+              className={`${s.btn} ${s.btnPrimary}`}
+              onClick={async () => {
+                const res  = await fetch(mosaicUrl)
+                const blob = await res.blob()
+                const url  = URL.createObjectURL(blob)
+                const a    = document.createElement('a')
+                a.href     = url
+                a.download = 'mosaic-maayan-amir.jpg'
+                a.click()
+                URL.revokeObjectURL(url)
+              }}
+            >
               ⬇️ הורד מוזאיקה
-            </a>
+            </button>
           </div>
         )}
         <button

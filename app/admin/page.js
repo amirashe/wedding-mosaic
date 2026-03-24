@@ -8,8 +8,9 @@ export default function AdminPage() {
   const [loading,         setLoading]         = useState(true)
   const [targetUrl,       setTargetUrl]       = useState(null)
   const [guestUrl,        setGuestUrl]        = useState('')
-  const [mosaicStatus,    setMosaicStatus]    = useState('idle')  // idle | running | done | error
+  const [mosaicStatus,    setMosaicStatus]    = useState('idle')
   const [mosaicUrl,       setMosaicUrl]       = useState(null)
+  const [progress,        setProgress]        = useState({ stage: '', current: 0, total: 1 })
   const [uploadingTarget, setUploadingTarget] = useState(false)
 
   useEffect(() => {
@@ -59,18 +60,53 @@ export default function AdminPage() {
 
     setMosaicStatus('running')
     setMosaicUrl(null)
+    setProgress({ stage: 'מתחיל...', current: 0, total: 1 })
 
-    const res = await fetch('/api/mosaic', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ targetUrl }),
-    })
+    const stageNames = {
+      download:   'מוריד תמונות',
+      variations: 'מכין וריאציות',
+      target:     'מנתח תמונת מטרה',
+      matching:   'מתאים צבעים',
+      composite:  'בונה מוזאיקה',
+      uploading:  'מעלה תוצאה',
+    }
 
-    if (res.ok) {
-      const data = await res.json()
-      setMosaicUrl(data.url)
-      setMosaicStatus('done')
-    } else {
+    try {
+      const res    = await fetch('/api/mosaic', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ targetUrl }),
+      })
+
+      const reader  = res.body.getReader()
+      const decoder = new TextDecoder()
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const lines = decoder.decode(value).split('\n').filter(l => l.startsWith('data: '))
+        for (const line of lines) {
+          try {
+            const data = JSON.parse(line.slice(6))
+            if (data.type === 'progress') {
+              setProgress({
+                stage:   stageNames[data.stage] || data.stage,
+                current: data.current,
+                total:   data.total,
+              })
+            } else if (data.type === 'uploading') {
+              setProgress({ stage: 'מעלה תוצאה...', current: 1, total: 1 })
+            } else if (data.type === 'done') {
+              setMosaicUrl(data.url)
+              setMosaicStatus('done')
+            } else if (data.type === 'error') {
+              setMosaicStatus('error')
+            }
+          } catch { /* skip parse errors */ }
+        }
+      }
+    } catch {
       setMosaicStatus('error')
     }
   }
@@ -123,7 +159,21 @@ export default function AdminPage() {
       <div className={s.card}>
         <h2 className={s.cardTitle}>🖼️ יצירת מוזאיקה</h2>
         {mosaicStatus === 'idle'    && <p className={s.hint}>לחץ כדי ליצור את המוזאיקה מכל התמונות שהועלו</p>}
-        {mosaicStatus === 'running' && <p className={s.running}>⏳ מייצר מוזאיקה... זה יכול לקחת 3-7 דקות</p>}
+        {mosaicStatus === 'running' && (
+          <div className={s.progressBox}>
+            <p className={s.running}>⏳ {progress.stage}</p>
+            <div className={s.progressTrack}>
+              <div
+                className={s.progressFill}
+                style={{ width: `${progress.total > 0 ? Math.round(progress.current / progress.total * 100) : 0}%` }}
+              />
+            </div>
+            <p className={s.progressText}>
+              {progress.current} / {progress.total}
+              {' '}({progress.total > 0 ? Math.round(progress.current / progress.total * 100) : 0}%)
+            </p>
+          </div>
+        )}
         {mosaicStatus === 'error'   && <p className={s.error}>שגיאה ביצירה. נסה שוב.</p>}
         {mosaicStatus === 'done'    && mosaicUrl && (
           <div className={s.mosaicDone}>

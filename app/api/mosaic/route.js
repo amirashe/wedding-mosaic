@@ -1,40 +1,53 @@
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { generateMosaic } from '@/lib/mosaic'
-
-export const maxDuration = 300  // 5 min (Railway has no hard limit)
 
 export async function POST(request) {
   const { targetUrl } = await request.json()
+  if (!targetUrl) return Response.json({ error: 'Missing targetUrl' }, { status: 400 })
 
-  if (!targetUrl) {
-    return Response.json({ error: 'Missing targetUrl' }, { status: 400 })
-  }
-
-  // Fetch all uploaded images
-  const { data: images, error } = await supabaseAdmin
+  const { data: images } = await supabase
     .from('uploads')
-    .select('image_url, filename')
+    .select('image_url')
     .order('created_at', { ascending: true })
 
-  if (error || !images?.length) {
-    return Response.json({ error: 'No images found' }, { status: 400 })
-  }
+  if (!images?.length) return Response.json({ error: 'No images' }, { status: 400 })
 
-  console.log(`Generating mosaic from ${images.length} images…`)
+  const encoder = new TextEncoder()
+  const send    = (ctrl, data) =>
+    ctrl.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
 
-  const mosaicBuffer = await generateMosaic(targetUrl, images)
+  const stream = new ReadableStream({
+    async start(controller) {
+      try {
+        const mosaicBuffer = await generateMosaic(
+          targetUrl,
+          images,
+          (stage, current, total) => send(controller, { type: 'progress', stage, current, total })
+        )
 
-  // Upload mosaic to Supabase storage
-  const filename = `mosaic-${Date.now()}.jpg`
-  const { error: uploadError } = await supabaseAdmin.storage
-    .from('photos')
-    .upload(filename, mosaicBuffer, { contentType: 'image/jpeg' })
+        send(controller, { type: 'uploading' })
 
-  if (uploadError) {
-    return Response.json({ error: uploadError.message }, { status: 500 })
-  }
+        const filename = `mosaic-${Date.now()}.jpg`
+        await supabaseAdmin.storage
+          .from('photos')
+          .upload(filename, mosaicBuffer, { contentType: 'image/jpeg' })
 
-  const { data: { publicUrl } } = supabaseAdmin.storage.from('photos').getPublicUrl(filename)
+        const { data: { publicUrl } } = supabaseAdmin.storage
+          .from('photos')
+          .getPublicUrl(filename)
 
-  return Response.json({ success: true, url: publicUrl })
+        send(controller, { type: 'done', url: publicUrl })
+      } catch (err) {
+        send(controller, { type: 'error', message: err.message })
+      }
+      controller.close()
+    }
+  })
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+    }
+  })
 }

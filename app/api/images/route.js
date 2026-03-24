@@ -1,10 +1,12 @@
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 
 export async function GET() {
-  const { data: images } = await supabaseAdmin
+  const { data: images, error } = await supabase
     .from('uploads')
     .select('*')
     .order('created_at', { ascending: false })
+
+  if (error) console.error('images fetch error:', error)
 
   // Get target image URL if it exists
   const { data: targetFiles } = await supabaseAdmin.storage

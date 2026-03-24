@@ -1,4 +1,4 @@
-import { supabaseAdmin } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 import sharp from 'sharp'
 
 const MAX_UPLOADS = parseInt(process.env.MAX_UPLOADS_PER_DEVICE || '3')
@@ -14,7 +14,7 @@ export async function POST(request) {
 
   // Check upload limit (guests only)
   if (!isTarget && deviceId) {
-    const { count } = await supabaseAdmin
+    const { count } = await supabase
       .from('uploads')
       .select('*', { count: 'exact', head: true })
       .eq('device_id', deviceId)

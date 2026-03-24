@@ -54,7 +54,7 @@ export default function AdminPage() {
 
   const generateMosaic = async () => {
     if (!targetUrl) { alert('העלה קודם תמונת מטרה'); return }
-    if (images.length < 10) { alert('צריך לפחות 10 תמונות'); return }
+    if (images.length < 1) { alert('צריך לפחות תמונה אחת'); return }
     if (!confirm(`להתחיל יצירת מוזאיקה מ-${images.length} תמונות? זה ייקח כמה דקות.`)) return
 
     setMosaicStatus('running')

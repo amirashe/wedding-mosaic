@@ -4,11 +4,33 @@ import { useState, useEffect } from 'react'
 import s from './page.module.css'
 
 async function compressImage(file) {
+  // HEIC/HEIF from iPhone - browser can't process, send as-is
+  if (file.type === 'image/heic' || file.type === 'image/heif' ||
+      file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+    return file
+  }
+
   return new Promise((resolve) => {
     const img    = new Image()
     const canvas = document.createElement('canvas')
     const ctx    = canvas.getContext('2d')
+    const url    = URL.createObjectURL(file)
+
+    // Timeout fallback - if compression hangs, send original
+    const timeout = setTimeout(() => {
+      URL.revokeObjectURL(url)
+      resolve(file)
+    }, 8000)
+
+    img.onerror = () => {
+      clearTimeout(timeout)
+      URL.revokeObjectURL(url)
+      resolve(file)  // send original if compression fails
+    }
+
     img.onload = () => {
+      clearTimeout(timeout)
+      URL.revokeObjectURL(url)
       const MAX = 1000
       let w = img.width, h = img.height
       if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
@@ -19,7 +41,7 @@ async function compressImage(file) {
         'image/jpeg', 0.80
       )
     }
-    img.src = URL.createObjectURL(file)
+    img.src = url
   })
 }
 
@@ -55,7 +77,7 @@ export default function AdminPage() {
 
     setBulkStatus({ done: 0, total: files.length, errors: 0 })
 
-    const BATCH = 3  // upload 3 at a time
+    const BATCH = 1  // sequential - more reliable
     for (let i = 0; i < files.length; i += BATCH) {
       const batch = files.slice(i, i + BATCH)
       await Promise.all(batch.map(async (file) => {

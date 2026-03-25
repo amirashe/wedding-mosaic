@@ -143,7 +143,7 @@ export default function AdminPage() {
       variations: 'מכין וריאציות',
       target:     'מנתח תמונת מטרה',
       matching:   'מתאים צבעים',
-      composite:  'בונה מוזאיקה',
+      composite:  'בונה רצועה',
       finishing:  'בונה תמונה סופית',
       uploading:  'מעלה תוצאה',
     }

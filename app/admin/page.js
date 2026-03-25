@@ -31,6 +31,7 @@ export default function AdminPage() {
   const [bulkStatus,      setBulkStatus]      = useState(null) // null | { done, total, errors }
   const [mosaicStatus,    setMosaicStatus]    = useState('idle')
   const [mosaicUrl,       setMosaicUrl]       = useState(null)
+  const [mosaicError,     setMosaicError]     = useState('')
   const [progress,        setProgress]        = useState({ stage: '', current: 0, total: 1 })
   const [uploadingTarget, setUploadingTarget] = useState(false)
 
@@ -151,6 +152,7 @@ export default function AdminPage() {
               setMosaicUrl(data.url)
               setMosaicStatus('done')
             } else if (data.type === 'error') {
+              setMosaicError(data.message || 'unknown error')
               setMosaicStatus('error')
             }
           } catch { /* skip parse errors */ }
@@ -263,7 +265,7 @@ export default function AdminPage() {
             </p>
           </div>
         )}
-        {mosaicStatus === 'error'   && <p className={s.error}>שגיאה ביצירה. נסה שוב.</p>}
+        {mosaicStatus === 'error'   && <p className={s.error}>שגיאה ביצירה: {mosaicError}</p>}
         {mosaicStatus === 'done'    && mosaicUrl && (
           <div className={s.mosaicDone}>
             <p className={s.doneText}>✅ המוזאיקה מוכנה!</p>

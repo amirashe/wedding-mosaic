@@ -144,6 +144,7 @@ export default function AdminPage() {
       target:     'מנתח תמונת מטרה',
       matching:   'מתאים צבעים',
       composite:  'בונה מוזאיקה',
+      finishing:  'מסיים עיבוד...',
       uploading:  'מעלה תוצאה',
     }
 

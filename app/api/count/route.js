@@ -1,17 +1,24 @@
-import { supabaseAdmin } from '@/lib/supabase'
-
 export const dynamic = 'force-dynamic'
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
   const deviceId = searchParams.get('deviceId')
-
   if (!deviceId) return Response.json({ count: 0 })
 
-  const { count } = await supabaseAdmin
-    .from('uploads')
-    .select('*', { count: 'exact', head: true })
-    .eq('device_id', deviceId)
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SECRET_KEY
 
-  return Response.json({ count: count || 0 })
+  const res = await fetch(
+    `${url}/rest/v1/uploads?select=id&device_id=eq.${encodeURIComponent(deviceId)}`,
+    {
+      headers: {
+        'apikey': key,
+        'Authorization': `Bearer ${key}`,
+        'Prefer': 'count=exact',
+      },
+      cache: 'no-store',
+    }
+  )
+  const data = await res.json()
+  return Response.json({ count: Array.isArray(data) ? data.length : 0 })
 }

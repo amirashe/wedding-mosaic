@@ -5,12 +5,16 @@ export async function POST(request) {
   const { targetUrl } = await request.json()
   if (!targetUrl) return Response.json({ error: 'Missing targetUrl' }, { status: 400 })
 
-  const { data: images } = await supabase
-    .from('uploads')
-    .select('image_url')
-    .order('created_at', { ascending: true })
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY
 
-  if (!images?.length) return Response.json({ error: 'No images' }, { status: 400 })
+  const imgRes = await fetch(
+    `${supabaseUrl}/rest/v1/uploads?select=image_url&order=created_at.asc`,
+    { headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }, cache: 'no-store' }
+  )
+  const images = await imgRes.json()
+
+  if (!Array.isArray(images) || !images.length) return Response.json({ error: 'No images' }, { status: 400 })
 
   const encoder = new TextEncoder()
   const send    = (ctrl, data) =>

@@ -63,6 +63,7 @@
 .btn:active { transform: scale(.97); }
 .btnPrimary   { background: linear-gradient(135deg,#16a34a,#22c55e); color: #fff; }
 .btnSecondary { background: #f3f4f6; color: #333; }
+.btnDanger    { background: linear-gradient(135deg,#ef4444,#f87171); color: #fff; }
 .disabled     { opacity: .55; pointer-events: none; }
 
 .targetPreview {

@@ -299,6 +299,19 @@ export default function AdminPage() {
       {/* Image grid */}
       <div className={s.card}>
         <h2 className={s.cardTitle}>🗂️ תמונות שהועלו ({images.length})</h2>
+        {images.length > 0 && (
+          <button
+            className={`${s.btn} ${s.btnDanger}`}
+            style={{ marginBottom: 14 }}
+            onClick={async () => {
+              if (!confirm(`למחוק את כל ${images.length} התמונות?`)) return
+              await fetch('/api/delete-all', { method: 'POST' })
+              fetchImages()
+            }}
+          >
+            🗑️ מחק את כל התמונות
+          </button>
+        )}
         {loading && <p className={s.hint}>טוען...</p>}
         {!loading && images.length === 0 && <p className={s.hint}>אין תמונות עדיין</p>}
         <div className={s.grid}>

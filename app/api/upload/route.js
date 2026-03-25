@@ -9,11 +9,12 @@ export async function POST(request) {
   const file     = formData.get('file')
   const deviceId = formData.get('deviceId')
   const isTarget = formData.get('isTarget') === 'true'
+  const isAdmin  = formData.get('isAdmin')  === 'true'
 
   if (!file) return Response.json({ error: 'missing file' }, { status: 400 })
 
-  // Check upload limit (guests only)
-  if (!isTarget && deviceId) {
+  // Check upload limit (guests only, not admin or target)
+  if (!isTarget && !isAdmin && deviceId) {
     const { count } = await supabase
       .from('uploads')
       .select('*', { count: 'exact', head: true })

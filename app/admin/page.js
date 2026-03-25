@@ -3,11 +3,32 @@
 import { useState, useEffect } from 'react'
 import s from './page.module.css'
 
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    const img    = new Image()
+    const canvas = document.createElement('canvas')
+    const ctx    = canvas.getContext('2d')
+    img.onload = () => {
+      const MAX = 1000
+      let w = img.width, h = img.height
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
+      canvas.width = w; canvas.height = h
+      ctx.drawImage(img, 0, 0, w, h)
+      canvas.toBlob(
+        blob => resolve(new File([blob], 'photo.jpg', { type: 'image/jpeg' })),
+        'image/jpeg', 0.80
+      )
+    }
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 export default function AdminPage() {
   const [images,          setImages]          = useState([])
   const [loading,         setLoading]         = useState(true)
   const [targetUrl,       setTargetUrl]       = useState(null)
   const [guestUrl,        setGuestUrl]        = useState('')
+  const [bulkStatus,      setBulkStatus]      = useState(null) // null | { done, total, errors }
   const [mosaicStatus,    setMosaicStatus]    = useState('idle')
   const [mosaicUrl,       setMosaicUrl]       = useState(null)
   const [progress,        setProgress]        = useState({ stage: '', current: 0, total: 1 })
@@ -25,6 +46,34 @@ export default function AdminPage() {
     setImages(data.images || [])
     setTargetUrl(data.targetUrl || null)
     setLoading(false)
+  }
+
+  const handleBulkUpload = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
+    setBulkStatus({ done: 0, total: files.length, errors: 0 })
+
+    const BATCH = 3  // upload 3 at a time
+    for (let i = 0; i < files.length; i += BATCH) {
+      const batch = files.slice(i, i + BATCH)
+      await Promise.all(batch.map(async (file) => {
+        try {
+          const compressed = await compressImage(file)
+          const fd = new FormData()
+          fd.append('file', compressed)
+          fd.append('deviceId', 'admin-bulk-' + Date.now())
+          fd.append('isAdmin', 'true')
+          await fetch('/api/upload', { method: 'POST', body: fd })
+          setBulkStatus(prev => ({ ...prev, done: prev.done + 1 }))
+        } catch {
+          setBulkStatus(prev => ({ ...prev, done: prev.done + 1, errors: prev.errors + 1 }))
+        }
+      }))
+    }
+
+    fetchImages()
+    e.target.value = ''
   }
 
   const deleteImage = async (id, filename) => {
@@ -113,6 +162,7 @@ export default function AdminPage() {
 
   return (
     <div className={s.page}>
+
       <h1 className={s.title}>⚙️ ניהול מוזאיקה</h1>
       <p className={s.sub}>חתונת מעיין ואמיר 💑</p>
 
@@ -140,6 +190,44 @@ export default function AdminPage() {
           <div className={s.statNum}>{targetUrl ? '✅' : '❌'}</div>
           <div className={s.statLbl}>תמונת מטרה</div>
         </div>
+      </div>
+
+      {/* Bulk upload */}
+      <div className={s.card}>
+        <h2 className={s.cardTitle}>📦 העלאת תמונות בכמות (טסט)</h2>
+        <p className={s.hint}>בחר עד 500 תמונות בבת אחת מהגלריה שלך</p>
+
+        {bulkStatus && (
+          <div className={s.progressBox}>
+            <p className={s.running}>
+              {bulkStatus.done < bulkStatus.total
+                ? `⏳ מעלה ${bulkStatus.done}/${bulkStatus.total}...`
+                : `✅ הועלו ${bulkStatus.done - bulkStatus.errors}/${bulkStatus.total} תמונות`}
+            </p>
+            <div className={s.progressTrack}>
+              <div
+                className={s.progressFill}
+                style={{ width: `${Math.round(bulkStatus.done / bulkStatus.total * 100)}%` }}
+              />
+            </div>
+            <p className={s.progressText}>
+              {Math.round(bulkStatus.done / bulkStatus.total * 100)}%
+              {bulkStatus.errors > 0 && ` · ${bulkStatus.errors} שגיאות`}
+            </p>
+          </div>
+        )}
+
+        <label className={`${s.btn} ${s.btnPrimary} ${bulkStatus && bulkStatus.done < bulkStatus.total ? s.disabled : ''}`}>
+          📸 בחר תמונות
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleBulkUpload}
+            disabled={bulkStatus && bulkStatus.done < bulkStatus.total}
+            style={{ display: 'none' }}
+          />
+        </label>
       </div>
 
       {/* Target image */}

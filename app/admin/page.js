@@ -72,7 +72,8 @@ export default function AdminPage() {
       }))
     }
 
-    fetchImages()
+    await fetchImages()
+    setBulkStatus(prev => ({ ...prev, done: prev.total }))
     e.target.value = ''
   }
 

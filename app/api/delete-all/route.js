@@ -10,8 +10,8 @@ export async function POST() {
     await supabaseAdmin.storage.from('photos').remove(filenames)
   }
 
-  // Delete all from DB
-  await supabaseAdmin.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  // Delete all from DB (anon key works with public policy)
+  await supabase.from('uploads').delete().neq('id', '00000000-0000-0000-0000-000000000000')
 
   return Response.json({ success: true, deleted: images?.length || 0 })
 }

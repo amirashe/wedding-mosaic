@@ -77,26 +77,29 @@ export default function AdminPage() {
 
     setBulkStatus({ done: 0, total: files.length, errors: 0 })
 
-    const BATCH = 1  // sequential - more reliable
-    for (let i = 0; i < files.length; i += BATCH) {
-      const batch = files.slice(i, i + BATCH)
-      await Promise.all(batch.map(async (file) => {
+    // Keep screen awake during upload
+    let wakeLock = null
+    try { wakeLock = await navigator.wakeLock?.request('screen') } catch {}
+
+    try {
+      for (let i = 0; i < files.length; i++) {
         try {
-          const compressed = await compressImage(file)
+          const compressed = await compressImage(files[i])
           const fd = new FormData()
           fd.append('file', compressed)
-          fd.append('deviceId', 'admin-bulk-' + Date.now())
+          fd.append('deviceId', 'admin-bulk-' + i)
           fd.append('isAdmin', 'true')
           await fetch('/api/upload', { method: 'POST', body: fd })
           setBulkStatus(prev => ({ ...prev, done: prev.done + 1 }))
         } catch {
           setBulkStatus(prev => ({ ...prev, done: prev.done + 1, errors: prev.errors + 1 }))
         }
-      }))
+      }
+    } finally {
+      try { wakeLock?.release() } catch {}
     }
 
     await fetchImages()
-    setBulkStatus(prev => ({ ...prev, done: prev.total }))
     e.target.value = ''
   }
 

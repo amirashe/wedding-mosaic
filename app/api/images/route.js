@@ -1,5 +1,7 @@
 import { supabase, supabaseAdmin } from '@/lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   const { data: images, error } = await supabase
     .from('uploads')

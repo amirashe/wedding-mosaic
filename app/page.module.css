@@ -7,13 +7,14 @@
 }
 
 .card {
-  background: #fff;
+  background: #fffaf4;
   border-radius: 24px;
   padding: 32px 24px;
-  box-shadow: 0 8px 40px rgba(0,0,0,.12);
+  box-shadow: 0 8px 40px rgba(120,70,20,.15);
   width: 100%;
   max-width: 420px;
   text-align: center;
+  border: 1px solid rgba(180,120,60,.15);
 }
 
 .emoji {
@@ -30,13 +31,13 @@
 .title {
   font-size: 24px;
   font-weight: 900;
-  color: #1e2e1e;
+  color: #3d1f00;
   margin-bottom: 10px;
 }
 
 .desc {
   font-size: 14px;
-  color: #5a7a5a;
+  color: #8a6040;
   line-height: 1.6;
   margin-bottom: 22px;
 }
@@ -60,7 +61,7 @@
   height: 90px;
   object-fit: cover;
   border-radius: 12px;
-  border: 2px solid #bbf7d0;
+  border: 2px solid #e8c49a;
   display: block;
 }
 
@@ -132,13 +133,13 @@
 .btnCamera:active, .btnGallery:active { opacity: .7; }
 
 .btnCamera {
-  background: linear-gradient(135deg, #16a34a, #22c55e);
+  background: linear-gradient(135deg, #b86a2a, #d4883a);
   color: #fff;
 }
 .btnGallery {
-  background: #f0fdf4;
-  color: #16a34a;
-  border: 2px solid #bbf7d0;
+  background: #fdf3e7;
+  color: #b86a2a;
+  border: 2px solid #e8c49a;
 }
 
 /* ── Upload button ── */
@@ -149,12 +150,12 @@
   font-size: 18px;
   font-weight: 800;
   font-family: 'Rubik', sans-serif;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
+  background: linear-gradient(135deg, #b86a2a, #d4883a);
   color: #fff;
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(22,163,74,.3);
+  box-shadow: 0 6px 20px rgba(180,100,40,.3);
   margin-bottom: 10px;
   transition: transform .15s;
 }
@@ -169,7 +170,7 @@
 .uploadingText {
   font-size: 16px;
   font-weight: 600;
-  color: #16a34a;
+  color: #b86a2a;
   margin-top: 10px;
 }
 
@@ -178,7 +179,7 @@
 .doneText {
   font-size: 18px;
   font-weight: 800;
-  color: #16a34a;
+  color: #b86a2a;
 }
 
 /* ── Restart ── */

@@ -96,6 +96,15 @@ export default function UploadPage() {
             <div className={s.limitEmoji}>🎉</div>
             <p className={s.limitTitle}>תודה רבה!</p>
             <p className={s.limitSub}>העלית {MAX_UPLOADS} תמונות — אתם חלק מהמוזאיקה!</p>
+            <button className={s.restartBtn} onClick={() => {
+              const newId = crypto.randomUUID()
+              localStorage.setItem('wedding_device_id', newId)
+              setDeviceId(newId)
+              setUploadCount(0)
+              setStatus('idle')
+            }}>
+              רוצה להתחיל מחדש? 🔄
+            </button>
           </div>
         )}
       </div>

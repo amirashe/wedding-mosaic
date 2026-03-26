@@ -141,7 +141,7 @@ export default function UploadPage() {
     <main className={s.main}>
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
-        <h1 className={s.title}>צלמו רגע מהרחבה!</h1>
+        <h1 className={s.title}>צלמו רגע מהערב שלנו!</h1>
         <p className={s.desc}>כל רגע שלכם הופך לחלק מהתמונה שלנו 🧩</p>
 
         {/* ── Uploading ── */}

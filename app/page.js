@@ -20,9 +20,7 @@ export default function UploadPage() {
     }
     setDeviceId(id)
 
-    // Restore previews from localStorage
-    const saved = JSON.parse(localStorage.getItem('wedding_previews') || '[]')
-    setPreviews(saved)
+    // Don't restore previews - blob URLs expire on refresh
 
     fetch(`/api/count?deviceId=${id}`)
       .then(r => r.json())
@@ -36,7 +34,9 @@ export default function UploadPage() {
 
     const remaining = MAX_UPLOADS - uploadCount
     if (files.length > remaining) {
-      alert(`אפשר להעלות עוד ${remaining} תמונות בלבד. רק ${remaining} הראשונות יועלו.`)
+      alert(`אפשר להעלות עוד ${remaining} תמונה${remaining === 1 ? '' : 'ות'} בלבד`)
+      if (inputRef.current) inputRef.current.value = ''
+      return
     }
     const toUpload = files.slice(0, remaining)
 
@@ -56,13 +56,9 @@ export default function UploadPage() {
           throw new Error()
         }
 
-        // Add preview only after successful upload
+        // Add preview (session only - blob URLs expire on refresh)
         const previewUrl = URL.createObjectURL(file)
-        setPreviews(prev => {
-          const updated = [...prev, previewUrl]
-          localStorage.setItem('wedding_previews', JSON.stringify(updated))
-          return updated
-        })
+        setPreviews(prev => [...prev, previewUrl])
 
         setUploadCount(prev => {
           const next = prev + 1
@@ -149,7 +145,6 @@ export default function UploadPage() {
               })
               const newId = crypto.randomUUID()
               localStorage.setItem('wedding_device_id', newId)
-              localStorage.removeItem('wedding_previews')
               setDeviceId(newId)
               setUploadCount(0)
               setPreviews([])

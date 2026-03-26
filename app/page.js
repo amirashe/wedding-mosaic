@@ -9,8 +9,9 @@ export default function UploadPage() {
   const [deviceId,    setDeviceId]    = useState(null)
   const [uploadCount, setUploadCount] = useState(0)
   const [status,      setStatus]      = useState('idle')
-  const [previews,    setPreviews]    = useState([])  // local preview URLs
-  const inputRef = useRef(null)
+  const [previews,    setPreviews]    = useState([])
+  const inputRef       = useRef(null)
+  const uploadCountRef = useRef(0)   // ref to avoid stale closure
 
   useEffect(() => {
     let id = localStorage.getItem('wedding_device_id')
@@ -24,7 +25,11 @@ export default function UploadPage() {
 
     fetch(`/api/count?deviceId=${id}`)
       .then(r => r.json())
-      .then(d => { if (d.count >= MAX_UPLOADS) setStatus('limit'); else setUploadCount(d.count) })
+      .then(d => {
+        uploadCountRef.current = d.count
+        if (d.count >= MAX_UPLOADS) setStatus('limit')
+        else setUploadCount(d.count)
+      })
       .catch(() => {})
   }, [])
 
@@ -32,9 +37,10 @@ export default function UploadPage() {
     const files = Array.from(e.target.files || [])
     if (!files.length || !deviceId) return
 
-    const remaining = MAX_UPLOADS - uploadCount
+    const remaining = MAX_UPLOADS - uploadCountRef.current
     if (files.length > remaining) {
-      alert(`אפשר להעלות עוד ${remaining} תמונה${remaining === 1 ? '' : 'ות'} בלבד`)
+      const msg = remaining === 1 ? 'נותרה לך עוד תמונה אחת בלבד' : `נותרו לך עוד ${remaining} תמונות בלבד`
+      alert(msg)
       if (inputRef.current) inputRef.current.value = ''
       return
     }
@@ -60,12 +66,10 @@ export default function UploadPage() {
         const previewUrl = URL.createObjectURL(file)
         setPreviews(prev => [...prev, previewUrl])
 
-        setUploadCount(prev => {
-          const next = prev + 1
-          if (next >= MAX_UPLOADS) setStatus('limit')
-          else setStatus('success')
-          return next
-        })
+        uploadCountRef.current += 1
+        setUploadCount(uploadCountRef.current)
+        if (uploadCountRef.current >= MAX_UPLOADS) setStatus('limit')
+        else setStatus('success')
       } catch {
         setStatus('error')
       }

@@ -177,7 +177,9 @@ export default function UploadPage() {
                       ? <img src={item.url} alt="" className={s.thumb} />
                       : <div className={s.thumbPlaceholder}>✅</div>
                     }
-                    <button className={s.removeBtn} onClick={() => deleteUploadedPhoto(item, i)}>✕</button>
+                    {totalUploaded < MAX_UPLOADS && (
+                      <button className={s.removeBtn} onClick={() => deleteUploadedPhoto(item, i)}>✕</button>
+                    )}
                     <div className={`${s.thumbLabel} ${s.thumbDone}`}>הועלה</div>
                   </div>
                 ))}
@@ -217,7 +219,7 @@ export default function UploadPage() {
             {/* Done message */}
             {stage === 'done' && staged.length === 0 && (
               <div className={s.doneBox}>
-                <p className={s.doneText}>🎉 אתם חלק מהמוזאיקה!</p>
+                <p className={s.doneText}>🎉 אתם עכשיו חלק מהתמונה הגדולה!</p>
               </div>
             )}
 

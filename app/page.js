@@ -8,7 +8,8 @@ const MAX_UPLOADS = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOADS || '3')
 export default function UploadPage() {
   const [deviceId,    setDeviceId]    = useState(null)
   const [uploadCount, setUploadCount] = useState(0)
-  const [status,      setStatus]      = useState('idle') // idle | uploading | success | error | limit
+  const [status,      setStatus]      = useState('idle')
+  const [previews,    setPreviews]    = useState([])  // local preview URLs
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -19,41 +20,62 @@ export default function UploadPage() {
     }
     setDeviceId(id)
 
+    // Restore previews from localStorage
+    const saved = JSON.parse(localStorage.getItem('wedding_previews') || '[]')
+    setPreviews(saved)
+
     fetch(`/api/count?deviceId=${id}`)
       .then(r => r.json())
       .then(d => { if (d.count >= MAX_UPLOADS) setStatus('limit'); else setUploadCount(d.count) })
       .catch(() => {})
   }, [])
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file || !deviceId) return
-    if (uploadCount >= MAX_UPLOADS) { setStatus('limit'); return }
+  const handleFiles = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length || !deviceId) return
+
+    const remaining = MAX_UPLOADS - uploadCount
+    const toUpload  = files.slice(0, remaining)
 
     setStatus('uploading')
 
-    try {
-      const compressed = await compressImage(file)
-      const fd = new FormData()
-      fd.append('file', compressed)
-      fd.append('deviceId', deviceId)
+    for (const file of toUpload) {
+      try {
+        // Show local preview immediately
+        const previewUrl = URL.createObjectURL(file)
+        setPreviews(prev => {
+          const updated = [...prev, previewUrl]
+          localStorage.setItem('wedding_previews', JSON.stringify(updated))
+          return updated
+        })
 
-      const res = await fetch('/api/upload', { method: 'POST', body: fd })
-      if (!res.ok) {
-        const err = await res.json()
-        if (err.error === 'limit') { setStatus('limit'); return }
-        throw new Error()
+        const compressed = await compressImage(file)
+        const fd = new FormData()
+        fd.append('file', compressed)
+        fd.append('deviceId', deviceId)
+
+        const res = await fetch('/api/upload', { method: 'POST', body: fd })
+        if (!res.ok) {
+          const err = await res.json()
+          if (err.error === 'limit') { setStatus('limit'); return }
+          throw new Error()
+        }
+
+        setUploadCount(prev => {
+          const next = prev + 1
+          if (next >= MAX_UPLOADS) setStatus('limit')
+          else setStatus('success')
+          return next
+        })
+      } catch {
+        setStatus('error')
       }
-
-      const newCount = uploadCount + 1
-      setUploadCount(newCount)
-      setStatus(newCount >= MAX_UPLOADS ? 'limit' : 'success')
-    } catch {
-      setStatus('error')
     }
 
     if (inputRef.current) inputRef.current.value = ''
   }
+
+  const remaining = MAX_UPLOADS - uploadCount
 
   return (
     <main className={s.main}>
@@ -62,26 +84,36 @@ export default function UploadPage() {
         <h1 className={s.title}>צלמו תמונה למוזאיקה שלנו</h1>
         <p className={s.desc}>כל התמונות שתעלו יצרפו יחד לתמונה אחת גדולה של מעיין ואמיר</p>
 
+        {/* Previews */}
+        {previews.length > 0 && (
+          <div className={s.previews}>
+            {previews.map((url, i) => (
+              <img key={i} src={url} alt="" className={s.previewThumb} />
+            ))}
+          </div>
+        )}
+
         {status !== 'limit' && (
           <>
             <label className={`${s.uploadBtn} ${status === 'uploading' ? s.loading : ''}`}>
-              {status === 'uploading' ? '⏳ מעלה...' : '📷 צלם תמונה'}
+              {status === 'uploading' ? '⏳ מעלה...' : `📷 צלם תמונה`}
               <input
                 ref={inputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
-                onChange={handleFile}
+                onChange={handleFiles}
                 disabled={status === 'uploading'}
                 style={{ display: 'none' }}
               />
             </label>
             <label className={`${s.galleryBtn} ${status === 'uploading' ? s.loading : ''}`}>
-              🖼️ בחר מהגלריה
+              🖼️ בחר מהגלריה {remaining > 1 ? `(עד ${remaining})` : ''}
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleFile}
+                multiple
+                onChange={handleFiles}
                 disabled={status === 'uploading'}
                 style={{ display: 'none' }}
               />
@@ -114,8 +146,10 @@ export default function UploadPage() {
               })
               const newId = crypto.randomUUID()
               localStorage.setItem('wedding_device_id', newId)
+              localStorage.removeItem('wedding_previews')
               setDeviceId(newId)
               setUploadCount(0)
+              setPreviews([])
               setStatus('idle')
             }}>
               רוצה להתחיל מחדש? 🔄
@@ -137,11 +171,9 @@ async function compressImage(file) {
       const MAX = 1000
       let w = img.width, h = img.height
       if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
-
       canvas.width  = w
       canvas.height = h
       ctx.drawImage(img, 0, 0, w, h)
-
       canvas.toBlob(
         blob => resolve(new File([blob], 'photo.jpg', { type: 'image/jpeg' })),
         'image/jpeg', 0.80

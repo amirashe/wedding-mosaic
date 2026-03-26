@@ -65,12 +65,22 @@ export default function UploadPage() {
         {status !== 'limit' && (
           <>
             <label className={`${s.uploadBtn} ${status === 'uploading' ? s.loading : ''}`}>
-              {status === 'uploading' ? '⏳ מעלה...' : '📤 העלה תמונה'}
+              {status === 'uploading' ? '⏳ מעלה...' : '📷 צלם תמונה'}
               <input
                 ref={inputRef}
                 type="file"
                 accept="image/*"
                 capture="environment"
+                onChange={handleFile}
+                disabled={status === 'uploading'}
+                style={{ display: 'none' }}
+              />
+            </label>
+            <label className={`${s.galleryBtn} ${status === 'uploading' ? s.loading : ''}`}>
+              🖼️ בחר מהגלריה
+              <input
+                type="file"
+                accept="image/*"
                 onChange={handleFile}
                 disabled={status === 'uploading'}
                 style={{ display: 'none' }}
@@ -96,7 +106,12 @@ export default function UploadPage() {
             <div className={s.limitEmoji}>🎉</div>
             <p className={s.limitTitle}>תודה רבה!</p>
             <p className={s.limitSub}>העלית {MAX_UPLOADS} תמונות — אתם חלק מהמוזאיקה!</p>
-            <button className={s.restartBtn} onClick={() => {
+            <button className={s.restartBtn} onClick={async () => {
+              await fetch('/api/delete-my-photos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviceId })
+              })
               const newId = crypto.randomUUID()
               localStorage.setItem('wedding_device_id', newId)
               setDeviceId(newId)

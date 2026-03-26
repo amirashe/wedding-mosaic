@@ -98,12 +98,8 @@ export default function UploadPage() {
   }
 
   // ── Restart ─────────────────────────────────────────────────────────────────
-  const restart = async () => {
-    await fetch('/api/delete-my-photos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ deviceId })
-    })
+  const restart = () => {
+    // התמונות הקודמות נשארות בדאטהבייס - רק יוצרים device ID חדש
     const newId = crypto.randomUUID()
     localStorage.setItem('wedding_device_id', newId)
     setDeviceId(newId)

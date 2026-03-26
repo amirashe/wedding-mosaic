@@ -7,7 +7,7 @@ const MAX_UPLOADS = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOADS || '3')
 
 export default function UploadPage() {
   const [deviceId,  setDeviceId]  = useState(null)
-  const [stage,     setStage]     = useState('loading')  // loading | select | uploading | done
+  const [stage,     setStage]     = useState('loading')  // loading | splash | select | uploading | done
   const [staged,    setStaged]    = useState([])          // [{file, previewUrl}] - not yet uploaded
   const [uploaded,  setUploaded]  = useState([])          // [{url}] - already uploaded this session
   const [existing,  setExisting]  = useState(0)           // count from previous sessions
@@ -24,9 +24,10 @@ export default function UploadPage() {
       .then(r => r.json())
       .then(d => {
         setExisting(d.count || 0)
-        setStage(d.count >= MAX_UPLOADS ? 'done' : 'select')
+        // If already uploaded before → skip splash, go straight to select/done
+        setStage(d.count >= MAX_UPLOADS ? 'done' : d.count > 0 ? 'select' : 'splash')
       })
-      .catch(() => setStage('select'))
+      .catch(() => setStage('splash'))
   }, [])
 
   const totalUploaded = existing + uploaded.length
@@ -114,14 +115,34 @@ export default function UploadPage() {
 
   if (stage === 'loading') return null
 
+  // ── Splash screen ───────────────────────────────────────────────────────────
+  if (stage === 'splash') return (
+    <main className={s.main}>
+      <div className={s.card}>
+        <div className={s.splashEmoji}>📸</div>
+        <h1 className={s.splashTitle}>
+          מצלמים רגע מהחתונה
+        </h1>
+        <p className={s.splashText}>
+          והתמונות שלכם מתחברות יחד<br />
+          לתמונה אחת גדולה שלנו
+        </p>
+        <div className={s.splashPuzzle}>🧩</div>
+        <button className={s.splashBtn} onClick={() => setStage('select')}>
+          בואו נתחיל! ✨
+        </button>
+      </div>
+    </main>
+  )
+
   const allDone = totalUploaded + staged.length === 0 && stage === 'done'
 
   return (
     <main className={s.main}>
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
-        <h1 className={s.title}>צלמו תמונה למוזאיקה שלנו</h1>
-        <p className={s.desc}>כל התמונות יצרפו יחד לתמונה אחת גדולה של מעיין ואמיר</p>
+        <h1 className={s.title}>צלמו רגע מהרחבה!</h1>
+        <p className={s.desc}>כל רגע שלכם הופך לחלק מהתמונה שלנו 🧩</p>
 
         {/* ── Uploading ── */}
         {stage === 'uploading' && (

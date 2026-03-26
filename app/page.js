@@ -6,157 +6,209 @@ import s from './page.module.css'
 const MAX_UPLOADS = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOADS || '3')
 
 export default function UploadPage() {
-  const [deviceId,    setDeviceId]    = useState(null)
-  const [uploadCount, setUploadCount] = useState(0)
-  const [status,      setStatus]      = useState('idle')
-  const [previews,    setPreviews]    = useState([])
-  const inputRef       = useRef(null)
-  const uploadCountRef = useRef(0)   // ref to avoid stale closure
+  const [deviceId,  setDeviceId]  = useState(null)
+  const [stage,     setStage]     = useState('loading')  // loading | select | uploading | done
+  const [staged,    setStaged]    = useState([])          // [{file, previewUrl}] - not yet uploaded
+  const [uploaded,  setUploaded]  = useState([])          // [{url}] - already uploaded this session
+  const [existing,  setExisting]  = useState(0)           // count from previous sessions
+  const [uploadMsg, setUploadMsg] = useState('')
+  const cameraRef  = useRef(null)
+  const galleryRef = useRef(null)
 
   useEffect(() => {
     let id = localStorage.getItem('wedding_device_id')
-    if (!id) {
-      id = crypto.randomUUID()
-      localStorage.setItem('wedding_device_id', id)
-    }
+    if (!id) { id = crypto.randomUUID(); localStorage.setItem('wedding_device_id', id) }
     setDeviceId(id)
-
-    // Don't restore previews - blob URLs expire on refresh
 
     fetch(`/api/count?deviceId=${id}`)
       .then(r => r.json())
       .then(d => {
-        uploadCountRef.current = d.count
-        if (d.count >= MAX_UPLOADS) setStatus('limit')
-        else setUploadCount(d.count)
+        setExisting(d.count || 0)
+        setStage(d.count >= MAX_UPLOADS ? 'done' : 'select')
       })
-      .catch(() => {})
+      .catch(() => setStage('select'))
   }, [])
 
-  const handleFiles = async (e) => {
-    const files = Array.from(e.target.files || [])
-    if (!files.length || !deviceId) return
+  const totalUploaded = existing + uploaded.length
+  const remaining     = MAX_UPLOADS - totalUploaded - staged.length
 
-    const remaining = MAX_UPLOADS - uploadCountRef.current
-    if (files.length > remaining) {
-      const msg = remaining === 1 ? 'נותרה לך עוד תמונה אחת בלבד' : `נותרו לך עוד ${remaining} תמונות בלבד`
-      alert(msg)
-      if (inputRef.current) inputRef.current.value = ''
+  // ── Add photos ──────────────────────────────────────────────────────────────
+  const addFiles = (files) => {
+    const arr = Array.from(files || [])
+    if (!arr.length) return
+
+    if (arr.length > remaining) {
+      alert(`מותר להעלות עד ${MAX_UPLOADS} תמונות בסך הכל. נותר מקום ל-${remaining} תמונות.`)
       return
     }
-    const toUpload = files.slice(0, remaining)
 
-    setStatus('uploading')
+    const newItems = arr.map(file => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+      id: crypto.randomUUID()
+    }))
+    setStaged(prev => [...prev, ...newItems])
+    if (cameraRef.current)  cameraRef.current.value  = ''
+    if (galleryRef.current) galleryRef.current.value = ''
+  }
 
-    for (const file of toUpload) {
+  // ── Remove staged photo ─────────────────────────────────────────────────────
+  const removeStagedPhoto = (id) => {
+    setStaged(prev => prev.filter(p => p.id !== id))
+  }
+
+  // ── Delete uploaded photo ───────────────────────────────────────────────────
+  const deleteUploadedPhoto = async (url, index) => {
+    setUploaded(prev => prev.filter((_, i) => i !== index))
+    setExisting(prev => prev > 0 ? prev - 1 : 0)
+    // Best effort delete from DB
+    const filename = url.split('/').pop().split('?')[0]
+    try {
+      await fetch('/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: '', filename })
+      })
+    } catch {}
+  }
+
+  // ── Upload staged photos ────────────────────────────────────────────────────
+  const handleUpload = async () => {
+    if (!staged.length || !deviceId) return
+    setStage('uploading')
+
+    const newUploaded = []
+    for (let i = 0; i < staged.length; i++) {
+      const { file } = staged[i]
+      setUploadMsg(`מעלה ${i + 1}/${staged.length}...`)
       try {
         const compressed = await compressImage(file)
         const fd = new FormData()
         fd.append('file', compressed)
         fd.append('deviceId', deviceId)
 
-        const res = await fetch('/api/upload', { method: 'POST', body: fd })
-        if (!res.ok) {
-          const err = await res.json()
-          if (err.error === 'limit') { setStatus('limit'); return }
-          throw new Error()
-        }
-
-        // Add preview (session only - blob URLs expire on refresh)
-        const previewUrl = URL.createObjectURL(file)
-        setPreviews(prev => [...prev, previewUrl])
-
-        uploadCountRef.current += 1
-        setUploadCount(uploadCountRef.current)
-        if (uploadCountRef.current >= MAX_UPLOADS) setStatus('limit')
-        else setStatus('success')
-      } catch {
-        setStatus('error')
-      }
+        const res  = await fetch('/api/upload', { method: 'POST', body: fd })
+        const data = await res.json()
+        if (res.ok) newUploaded.push({ url: data.url || '' })
+      } catch {}
     }
 
-    if (inputRef.current) inputRef.current.value = ''
+    setUploaded(prev => [...prev, ...newUploaded])
+    setStaged([])
+    setStage(totalUploaded + newUploaded.length >= MAX_UPLOADS ? 'done' : 'select')
   }
 
-  const remaining = MAX_UPLOADS - uploadCount
+  // ── Restart ─────────────────────────────────────────────────────────────────
+  const restart = async () => {
+    await fetch('/api/delete-my-photos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId })
+    })
+    const newId = crypto.randomUUID()
+    localStorage.setItem('wedding_device_id', newId)
+    setDeviceId(newId)
+    setUploaded([])
+    setExisting(0)
+    setStaged([])
+    setStage('select')
+  }
+
+  if (stage === 'loading') return null
+
+  const allDone = totalUploaded + staged.length === 0 && stage === 'done'
 
   return (
     <main className={s.main}>
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
         <h1 className={s.title}>צלמו תמונה למוזאיקה שלנו</h1>
-        <p className={s.desc}>כל התמונות שתעלו יצרפו יחד לתמונה אחת גדולה של מעיין ואמיר</p>
+        <p className={s.desc}>כל התמונות יצרפו יחד לתמונה אחת גדולה של מעיין ואמיר</p>
 
-        {/* Previews */}
-        {previews.length > 0 && (
-          <div className={s.previews}>
-            {previews.map((url, i) => (
-              <img key={i} src={url} alt="" className={s.previewThumb} />
-            ))}
+        {/* ── Uploading ── */}
+        {stage === 'uploading' && (
+          <div className={s.uploadingBox}>
+            <div className={s.spinner}>⏳</div>
+            <p className={s.uploadingText}>{uploadMsg}</p>
           </div>
         )}
 
-        {status !== 'limit' && (
+        {/* ── Select / Done stage ── */}
+        {stage !== 'uploading' && (
           <>
-            <label className={`${s.uploadBtn} ${status === 'uploading' ? s.loading : ''}`}>
-              {status === 'uploading' ? '⏳ מעלה...' : `📷 צלם תמונה`}
-              <input
-                ref={inputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleFiles}
-                disabled={status === 'uploading'}
-                style={{ display: 'none' }}
-              />
-            </label>
-            <label className={`${s.galleryBtn} ${status === 'uploading' ? s.loading : ''}`}>
-              🖼️ בחר מהגלריה {remaining > 1 ? `(עד ${remaining})` : ''}
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleFiles}
-                disabled={status === 'uploading'}
-                style={{ display: 'none' }}
-              />
-            </label>
-
-            {status === 'success' && (
-              <div className={s.success}>
-                <div className={s.successIcon}>✅</div>
-                <p className={s.successText}>התמונה הועלתה בהצלחה!</p>
-                <div className={s.counter}>{uploadCount}/{MAX_UPLOADS} תמונות הועלו</div>
+            {/* Staged thumbnails */}
+            {staged.length > 0 && (
+              <div className={s.thumbGrid}>
+                {staged.map(item => (
+                  <div key={item.id} className={s.thumbWrap}>
+                    <img src={item.previewUrl} alt="" className={s.thumb} />
+                    <button className={s.removeBtn} onClick={() => removeStagedPhoto(item.id)}>✕</button>
+                    <div className={s.thumbLabel}>ממתין</div>
+                  </div>
+                ))}
               </div>
             )}
 
-            {status === 'error' && (
-              <p className={s.error}>שגיאה בהעלאה, נסה שוב 🙏</p>
+            {/* Uploaded thumbnails */}
+            {uploaded.length > 0 && (
+              <div className={s.thumbGrid}>
+                {uploaded.map((item, i) => (
+                  <div key={i} className={s.thumbWrap}>
+                    {item.url
+                      ? <img src={item.url} alt="" className={s.thumb} />
+                      : <div className={s.thumbPlaceholder}>✅</div>
+                    }
+                    <button className={s.removeBtn} onClick={() => deleteUploadedPhoto(item.url, i)}>✕</button>
+                    <div className={`${s.thumbLabel} ${s.thumbDone}`}>הועלה</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Counter */}
+            {(staged.length > 0 || totalUploaded > 0) && (
+              <p className={s.counterText}>
+                {totalUploaded + staged.length}/{MAX_UPLOADS} תמונות
+              </p>
+            )}
+
+            {/* Add buttons */}
+            {remaining > 0 && (
+              <div className={s.btnRow}>
+                <label className={s.btnCamera}>
+                  📷 צלם
+                  <input ref={cameraRef} type="file" accept="image/*" capture="environment"
+                    onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
+                </label>
+                <label className={s.btnGallery}>
+                  🖼️ גלריה
+                  <input ref={galleryRef} type="file" accept="image/*" multiple
+                    onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
+                </label>
+              </div>
+            )}
+
+            {/* Upload button */}
+            {staged.length > 0 && (
+              <button className={s.uploadBtn} onClick={handleUpload}>
+                העלה {staged.length === 1 ? 'תמונה' : `${staged.length} תמונות`} ✅
+              </button>
+            )}
+
+            {/* Done message */}
+            {stage === 'done' && staged.length === 0 && (
+              <div className={s.doneBox}>
+                <p className={s.doneText}>🎉 אתם חלק מהמוזאיקה!</p>
+              </div>
+            )}
+
+            {/* Restart */}
+            {totalUploaded > 0 && staged.length === 0 && (
+              <button className={s.restartBtn} onClick={restart}>
+                התחל מחדש 🔄
+              </button>
             )}
           </>
-        )}
-
-        {status === 'limit' && (
-          <div className={s.limitBox}>
-            <div className={s.limitEmoji}>🎉</div>
-            <p className={s.limitTitle}>תודה רבה!</p>
-            <p className={s.limitSub}>העלית {MAX_UPLOADS} תמונות — אתם חלק מהמוזאיקה!</p>
-            <button className={s.restartBtn} onClick={async () => {
-              await fetch('/api/delete-my-photos', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deviceId })
-              })
-              const newId = crypto.randomUUID()
-              localStorage.setItem('wedding_device_id', newId)
-              setDeviceId(newId)
-              setUploadCount(0)
-              setPreviews([])
-              setStatus('idle')
-            }}>
-              רוצה להתחיל מחדש? 🔄
-            </button>
-          </div>
         )}
       </div>
     </main>
@@ -168,19 +220,19 @@ async function compressImage(file) {
     const img    = new Image()
     const canvas = document.createElement('canvas')
     const ctx    = canvas.getContext('2d')
-
-    img.onload = () => {
+    const url    = URL.createObjectURL(file)
+    const timeout = setTimeout(() => { URL.revokeObjectURL(url); resolve(file) }, 8000)
+    img.onerror = () => { clearTimeout(timeout); URL.revokeObjectURL(url); resolve(file) }
+    img.onload  = () => {
+      clearTimeout(timeout)
+      URL.revokeObjectURL(url)
       const MAX = 1000
       let w = img.width, h = img.height
       if (w > MAX) { h = Math.round(h * MAX / w); w = MAX }
-      canvas.width  = w
-      canvas.height = h
+      canvas.width = w; canvas.height = h
       ctx.drawImage(img, 0, 0, w, h)
-      canvas.toBlob(
-        blob => resolve(new File([blob], 'photo.jpg', { type: 'image/jpeg' })),
-        'image/jpeg', 0.80
-      )
+      canvas.toBlob(blob => resolve(new File([blob], 'photo.jpg', { type: 'image/jpeg' })), 'image/jpeg', 0.80)
     }
-    img.src = URL.createObjectURL(file)
+    img.src = url
   })
 }

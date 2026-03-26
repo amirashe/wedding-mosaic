@@ -3,9 +3,9 @@
 body {
   font-family: 'Rubik', sans-serif;
   direction: rtl;
-  background-color: #f5ede0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110'%3E%3Crect width='110' height='110' fill='%23f5ede0'/%3E%3Cpath d='M0,55 L25,55 C30,55 35,32 55,32 C75,32 80,55 85,55 L110,55' stroke='%23c9a06a' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M55,0 L55,25 C55,30 78,35 78,55 C78,75 55,80 55,85 L55,110' stroke='%23c9a06a' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-size: 110px 110px;
+  background-color: #e8d5b8;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Crect width='120' height='120' fill='%23f0e4cc'/%3E%3C!-- Horizontal seam shadow --%3E%3Cpath d='M-2,62 L32,62 Q34,62 37,54 Q43,36 60,36 Q77,36 83,54 Q86,62 88,62 L122,62' stroke='%23a07840' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C!-- Horizontal seam highlight --%3E%3Cpath d='M-2,58 L31,58 Q33,58 36,50 Q42,32 60,32 Q78,32 84,50 Q87,58 89,58 L122,58' stroke='%23fdf4e3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C!-- Vertical seam shadow --%3E%3Cpath d='M62,-2 L62,32 Q62,34 70,37 Q88,43 88,60 Q88,77 70,83 Q62,86 62,88 L62,122' stroke='%23a07840' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C!-- Vertical seam highlight --%3E%3Cpath d='M58,-2 L58,31 Q58,33 66,36 Q84,42 84,60 Q84,78 66,84 Q58,87 58,89 L58,122' stroke='%23fdf4e3' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: 120px 120px;
   min-height: 100vh;
   color: #2e1e0e;
   -webkit-font-smoothing: antialiased;

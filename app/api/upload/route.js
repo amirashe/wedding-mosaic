@@ -46,14 +46,16 @@ export async function POST(request) {
 
   const { data: { publicUrl } } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(filename)
 
-  // Save metadata to DB (guests only)
+  // Save metadata to DB (guests only) and return the ID
+  let dbId = null
   if (!isTarget) {
-    await supabaseAdmin.from('uploads').insert({
-      image_url: publicUrl,
-      filename,
-      device_id: deviceId || 'unknown',
-    })
+    const { data } = await supabaseAdmin
+      .from('uploads')
+      .insert({ image_url: publicUrl, filename, device_id: deviceId || 'unknown' })
+      .select('id')
+      .single()
+    dbId = data?.id || null
   }
 
-  return Response.json({ success: true, url: publicUrl })
+  return Response.json({ success: true, url: publicUrl, id: dbId, filename })
 }

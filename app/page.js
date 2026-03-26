@@ -58,16 +58,14 @@ export default function UploadPage() {
   }
 
   // ── Delete uploaded photo ───────────────────────────────────────────────────
-  const deleteUploadedPhoto = async (url, index) => {
+  const deleteUploadedPhoto = async (photo, index) => {
     setUploaded(prev => prev.filter((_, i) => i !== index))
     setExisting(prev => prev > 0 ? prev - 1 : 0)
-    // Best effort delete from DB
-    const filename = url.split('/').pop().split('?')[0]
     try {
       await fetch('/api/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: '', filename })
+        body: JSON.stringify({ id: photo.id, filename: photo.filename })
       })
     } catch {}
   }
@@ -89,7 +87,7 @@ export default function UploadPage() {
 
         const res  = await fetch('/api/upload', { method: 'POST', body: fd })
         const data = await res.json()
-        if (res.ok) newUploaded.push({ url: data.url || '' })
+        if (res.ok) newUploaded.push({ url: data.url || '', id: data.id || '', filename: data.filename || '' })
       } catch {}
     }
 
@@ -158,7 +156,7 @@ export default function UploadPage() {
                       ? <img src={item.url} alt="" className={s.thumb} />
                       : <div className={s.thumbPlaceholder}>✅</div>
                     }
-                    <button className={s.removeBtn} onClick={() => deleteUploadedPhoto(item.url, i)}>✕</button>
+                    <button className={s.removeBtn} onClick={() => deleteUploadedPhoto(item, i)}>✕</button>
                     <div className={`${s.thumbLabel} ${s.thumbDone}`}>הועלה</div>
                   </div>
                 ))}

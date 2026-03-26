@@ -35,20 +35,15 @@ export default function UploadPage() {
     if (!files.length || !deviceId) return
 
     const remaining = MAX_UPLOADS - uploadCount
-    const toUpload  = files.slice(0, remaining)
+    if (files.length > remaining) {
+      alert(`אפשר להעלות עוד ${remaining} תמונות בלבד. רק ${remaining} הראשונות יועלו.`)
+    }
+    const toUpload = files.slice(0, remaining)
 
     setStatus('uploading')
 
     for (const file of toUpload) {
       try {
-        // Show local preview immediately
-        const previewUrl = URL.createObjectURL(file)
-        setPreviews(prev => {
-          const updated = [...prev, previewUrl]
-          localStorage.setItem('wedding_previews', JSON.stringify(updated))
-          return updated
-        })
-
         const compressed = await compressImage(file)
         const fd = new FormData()
         fd.append('file', compressed)
@@ -60,6 +55,14 @@ export default function UploadPage() {
           if (err.error === 'limit') { setStatus('limit'); return }
           throw new Error()
         }
+
+        // Add preview only after successful upload
+        const previewUrl = URL.createObjectURL(file)
+        setPreviews(prev => {
+          const updated = [...prev, previewUrl]
+          localStorage.setItem('wedding_previews', JSON.stringify(updated))
+          return updated
+        })
 
         setUploadCount(prev => {
           const next = prev + 1

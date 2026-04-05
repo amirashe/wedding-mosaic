@@ -117,15 +117,13 @@ export default function UploadPage() {
     <main className={s.main}>
       <PuzzleBackground />
       <div className={s.card}>
-        <span className={s.splashEmoji}>📸</span>
-        <span className={s.splashNames}>מעיין & אמיר</span>
+        <div className={s.splashEmoji}>📸</div>
         <h1 className={s.splashTitle}>
-          צלמו רגע<br />מהחתונה שלנו
+          מצלמים רגע מהחתונה
         </h1>
-        <div className={s.splashDivider}>✦</div>
         <p className={s.splashText}>
-          התמונות שלכם יתחברו יחד<br />
-          למוזאיקה אחת גדולה
+          והתמונות שלכם מתחברות יחד<br />
+          לתמונה אחת גדולה שלנו
         </p>
         <div className={s.splashPuzzle}>🧩</div>
         <button className={s.splashBtn} onClick={() => setStage('select')}>

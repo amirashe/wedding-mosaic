@@ -164,21 +164,29 @@ export default function UploadPage() {
     if (!staged.length || !deviceId) return
     setStage('uploading')
 
-    const newUploaded = []
-    for (let i = 0; i < staged.length; i++) {
-      const { file } = staged[i]
-      setUploadMsg(`מעלה ${i + 1}/${staged.length}...`)
-      try {
-        const compressed = await compressImage(file)
-        const fd = new FormData()
-        fd.append('file', compressed)
-        fd.append('deviceId', deviceId)
+    // Step 1: compress everything first, before any request is sent
+    setUploadMsg('מכין תמונות...')
+    const compressed = await Promise.all(
+      staged.map(({ file }) => compressImage(file).catch(() => file))
+    )
 
+    // Step 2: fire all uploads simultaneously — all requests are in-flight
+    // before the user can minimize the app, so they complete even if suspended
+    setUploadMsg(`מעלה ${compressed.length} תמונות...`)
+    const results = await Promise.allSettled(
+      compressed.map(async (file) => {
+        const fd = new FormData()
+        fd.append('file', file)
+        fd.append('deviceId', deviceId)
         const res  = await fetch('/api/upload', { method: 'POST', body: fd })
-        const data = await res.json()
-        if (res.ok) newUploaded.push({ url: data.url || '', id: data.id || '', filename: data.filename || '' })
-      } catch {}
-    }
+        if (!res.ok) throw new Error('upload failed')
+        return res.json()
+      })
+    )
+
+    const newUploaded = results
+      .filter(r => r.status === 'fulfilled')
+      .map(r => ({ url: r.value.url || '', id: r.value.id || '', filename: r.value.filename || '' }))
 
     setUploaded(prev => [...prev, ...newUploaded])
     setStaged([])

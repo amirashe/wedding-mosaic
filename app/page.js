@@ -6,6 +6,93 @@ import PuzzleBackground from './components/PuzzleBackground'
 
 const MAX_UPLOADS = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOADS || '3')
 
+function SamsungBlock() {
+  const isSamsung = typeof navigator !== 'undefined' &&
+    /SamsungBrowser/i.test(navigator.userAgent)
+  if (!isSamsung) return null
+
+  const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const host = currentUrl.replace(/^https?:\/\//, '')
+  const chromeIntent = `intent://${host}#Intent;scheme=https;package=com.android.chrome;end`
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 99999,
+      background: 'linear-gradient(160deg, #faf4e8 0%, #f2e4cc 55%, #e8d4b0 100%)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '32px 24px', textAlign: 'center', direction: 'rtl',
+    }}>
+      <div style={{ fontSize: '64px', marginBottom: '20px' }}>🌐</div>
+      <h2 style={{
+        fontFamily: "'Playfair Display', serif",
+        fontSize: '24px', fontWeight: '700',
+        color: '#2c1a00', marginBottom: '12px', lineHeight: '1.35',
+      }}>
+        דפדפן לא נתמך
+      </h2>
+      <p style={{
+        fontSize: '15px', color: '#8a6f4a',
+        lineHeight: '1.7', marginBottom: '28px', fontWeight: '300',
+      }}>
+        דפדפן Samsung Internet אינו תומך בהעלאת תמונות.<br />
+        אנא פתחו את הקישור ב‑<strong>Chrome</strong> או בכל דפדפן אחר.
+      </p>
+      <a href={chromeIntent} style={{
+        display: 'block', width: '100%', maxWidth: '320px',
+        padding: '16px',
+        background: 'linear-gradient(135deg, #4285f4, #5a9cf5)',
+        color: '#fff', borderRadius: '50px', textDecoration: 'none',
+        fontSize: '17px', fontWeight: '700', marginBottom: '12px',
+        boxShadow: '0 5px 18px rgba(66,133,244,.35)',
+      }}>
+        פתח ב‑Chrome ▶
+      </a>
+      <p style={{ fontSize: '12px', color: '#b8a080' }}>
+        אין Chrome? העתיקו את הקישור ופתחו בדפדפן אחר
+      </p>
+      <div style={{
+        marginTop: '16px',
+        background: 'rgba(255,253,246,.9)',
+        borderRadius: '12px', padding: '10px 16px',
+        border: '1px solid rgba(200,168,76,.22)',
+        fontSize: '13px', color: '#8a6f4a',
+        wordBreak: 'break-all', maxWidth: '320px',
+      }}>
+        {currentUrl}
+      </div>
+    </div>
+  )
+}
+
+function BrowserWarning() {
+  const isSamsung = typeof navigator !== 'undefined' &&
+    /SamsungBrowser/i.test(navigator.userAgent)
+  if (!isSamsung) return null
+
+  const url = typeof window !== 'undefined' ? window.location.href : ''
+  const chromeUrl = `intent://${url.replace(/^https?:\/\//, '')}#Intent;scheme=https;package=com.android.chrome;end`
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+      background: '#1a1a1a', color: '#fff', padding: '14px 16px',
+      textAlign: 'center', fontSize: '14px', lineHeight: '1.5',
+      direction: 'rtl',
+    }}>
+      <div>⚠️ לחוויה הטובה ביותר, פתחו את הקישור <strong>ב-Chrome</strong></div>
+      <a href={chromeUrl} style={{
+        display: 'inline-block', marginTop: '8px',
+        background: '#4285f4', color: '#fff',
+        padding: '8px 20px', borderRadius: '20px',
+        fontSize: '14px', fontWeight: '700', textDecoration: 'none',
+      }}>
+        פתח ב-Chrome ▶
+      </a>
+    </div>
+  )
+}
+
 export default function UploadPage() {
   const [deviceId,  setDeviceId]  = useState(null)
   const [stage,     setStage]     = useState('loading')  // loading | splash | select | uploading | done
@@ -115,6 +202,7 @@ export default function UploadPage() {
   // ── Splash screen ───────────────────────────────────────────────────────────
   if (stage === 'splash') return (
     <main className={s.main}>
+      <SamsungBlock />
       <PuzzleBackground />
       <div className={s.card}>
         <div className={s.splashEmoji}>📸</div>
@@ -137,6 +225,7 @@ export default function UploadPage() {
 
   return (
     <main className={s.main}>
+      <SamsungBlock />
       <PuzzleBackground />
       <div className={s.card}>
         <div className={s.emoji}>📸</div>

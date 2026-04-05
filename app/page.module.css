@@ -77,6 +77,7 @@
   font-size: 40px;
   margin: 8px 0 18px;
   display: block;
+  filter: sepia(1) saturate(3) hue-rotate(10deg);
 }
 
 .splashBtn {
@@ -123,6 +124,10 @@
   line-height: 1.6;
   margin-bottom: 16px;
   font-weight: 300;
+}
+.desc .puzzle {
+  display: inline-block;
+  filter: sepia(1) saturate(3) hue-rotate(10deg);
 }
 
 /* ── Thumbnails ── */

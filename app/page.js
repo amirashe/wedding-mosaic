@@ -238,7 +238,7 @@ export default function UploadPage() {
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
         <h1 className={s.title}>צלמו רגע מהערב שלנו!</h1>
-        <p className={s.desc}>כל רגע שלכם הופך לחלק מהתמונה שלנו 🧩</p>
+        <p className={s.desc}>כל רגע שלכם הופך לחלק מהתמונה שלנו <span className={s.puzzle}>🧩</span></p>
 
         {/* ── Uploading ── */}
         {stage === 'uploading' && (

@@ -221,7 +221,7 @@ export default function UploadPage() {
           והתמונות שלכם מתחברות יחד<br />
           לתמונה אחת גדולה שלנו
         </p>
-        <div className={s.splashPuzzle}>🧩</div>
+        <div className={s.splashPuzzle}>✨</div>
         <button className={s.splashBtn} onClick={() => setStage('select')}>
           בואו נתחיל! ✨
         </button>
@@ -238,7 +238,7 @@ export default function UploadPage() {
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
         <h1 className={s.title}>צלמו רגע מהערב שלנו!</h1>
-        <p className={s.desc}>כל רגע שלכם הופך לחלק מהתמונה שלנו 🧩</p>
+        <p className={s.desc}>כל רגע שלכם הופך לחלק מהתמונה שלנו ✨</p>
 
         {/* ── Uploading ── */}
         {stage === 'uploading' && (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import s from './page.module.css'
+import PuzzleBackground from './components/PuzzleBackground'
 
 const MAX_UPLOADS = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOADS || '3')
 
@@ -114,14 +115,17 @@ export default function UploadPage() {
   // ── Splash screen ───────────────────────────────────────────────────────────
   if (stage === 'splash') return (
     <main className={s.main}>
+      <PuzzleBackground />
       <div className={s.card}>
-        <div className={s.splashEmoji}>📸</div>
+        <span className={s.splashEmoji}>📸</span>
+        <span className={s.splashNames}>מעיין & אמיר</span>
         <h1 className={s.splashTitle}>
-          מצלמים רגע מהחתונה
+          צלמו רגע<br />מהחתונה שלנו
         </h1>
+        <div className={s.splashDivider}>✦</div>
         <p className={s.splashText}>
-          והתמונות שלכם מתחברות יחד<br />
-          לתמונה אחת גדולה שלנו
+          התמונות שלכם יתחברו יחד<br />
+          למוזאיקה אחת גדולה
         </p>
         <div className={s.splashPuzzle}>🧩</div>
         <button className={s.splashBtn} onClick={() => setStage('select')}>
@@ -135,6 +139,7 @@ export default function UploadPage() {
 
   return (
     <main className={s.main}>
+      <PuzzleBackground />
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
         <h1 className={s.title}>צלמו רגע מהערב שלנו!</h1>

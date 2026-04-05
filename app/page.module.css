@@ -4,70 +4,105 @@
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
+  position: relative;
+  z-index: 1;
 }
 
 .card {
-  background: #fffaf4;
-  border-radius: 24px;
-  padding: 32px 24px;
-  box-shadow: 0 8px 40px rgba(120,70,20,.15);
+  background: rgba(255, 253, 246, 0.93);
+  border-radius: 22px;
+  padding: 30px 24px 26px;
+  box-shadow: 0 5px 32px rgba(120,70,20,.13), 0 1px 0 rgba(255,255,255,.9) inset;
   width: 100%;
   max-width: 420px;
   text-align: center;
-  border: 1px solid rgba(180,120,60,.15);
+  border: 1px solid rgba(200,168,76,.22);
+  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Splash screen ── */
 .splashEmoji {
-  font-size: 72px;
+  font-size: 64px;
   line-height: 1;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   animation: bob 2.5s ease-in-out infinite;
+  display: block;
 }
 
 .splashTitle {
-  font-size: 26px;
-  font-weight: 900;
-  color: #3d1f00;
-  margin-bottom: 16px;
-  line-height: 1.3;
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2c1a00;
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+
+.splashNames {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: #b8922e;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.splashDivider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 14px;
+  color: #c9a84c;
+  font-size: 11px;
+}
+.splashDivider::before, .splashDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200,168,76,.4), transparent);
 }
 
 .splashText {
-  font-size: 17px;
-  color: #8a6040;
+  font-size: 14px;
+  color: #8a6f4a;
   line-height: 1.7;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
+  font-weight: 300;
 }
 
 .splashPuzzle {
-  font-size: 48px;
-  margin: 12px 0 24px;
+  font-size: 40px;
+  margin: 8px 0 18px;
+  display: block;
 }
 
 .splashBtn {
   display: block;
   width: 100%;
-  padding: 18px;
-  font-size: 20px;
-  font-weight: 800;
-  font-family: 'Rubik', sans-serif;
-  background: linear-gradient(135deg, #b86a2a, #d4883a);
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  background: linear-gradient(135deg, #b8922e, #d4aa4a, #c09030);
   color: #fff;
   border: none;
-  border-radius: 16px;
+  border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(180,100,40,.3);
+  box-shadow: 0 5px 18px rgba(160,120,30,.32);
   transition: transform .15s;
 }
 .splashBtn:active { transform: scale(.97); }
 
 /* ── Upload screen ── */
 .emoji {
-  font-size: 56px;
+  font-size: 48px;
   line-height: 1;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   animation: bob 2.5s ease-in-out infinite;
+  display: block;
 }
 @keyframes bob {
   0%,100% { transform: translateY(0); }
@@ -75,17 +110,19 @@
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 900;
-  color: #3d1f00;
-  margin-bottom: 10px;
+  font-family: 'Playfair Display', serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: #2c1a00;
+  margin-bottom: 6px;
 }
 
 .desc {
-  font-size: 14px;
-  color: #8a6040;
+  font-size: 13px;
+  color: #8a6f4a;
   line-height: 1.6;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
+  font-weight: 300;
 }
 
 /* ── Thumbnails ── */
@@ -94,46 +131,46 @@
   gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .thumbWrap {
   position: relative;
-  width: 90px;
+  width: 82px;
 }
 
 .thumb {
-  width: 90px;
-  height: 90px;
+  width: 82px;
+  height: 82px;
   object-fit: cover;
   border-radius: 12px;
-  border: 2px solid #e8c49a;
+  border: 2px solid rgba(200,168,76,.45);
   display: block;
 }
 
 .thumbPlaceholder {
-  width: 90px;
-  height: 90px;
+  width: 82px;
+  height: 82px;
   border-radius: 12px;
-  background: #f0fdf4;
-  border: 2px solid #bbf7d0;
+  background: rgba(255,248,225,.7);
+  border: 2px solid rgba(200,168,76,.30);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .removeBtn {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 24px;
-  height: 24px;
+  top: -7px;
+  right: -7px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #ef4444;
   color: #fff;
   border: none;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -142,102 +179,116 @@
 }
 
 .thumbLabel {
-  font-size: 11px;
-  color: #f59e0b;
+  font-size: 10px;
+  color: #c9a030;
   font-weight: 600;
   margin-top: 4px;
+  text-align: center;
 }
-.thumbDone { color: #16a34a; }
+.thumbDone { color: #b8922e; }
 
 /* ── Counter ── */
 .counterText {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
   font-size: 14px;
-  color: #5a7a5a;
-  margin-bottom: 16px;
-  font-weight: 600;
+  color: #b8922e;
+  margin-bottom: 12px;
 }
 
 /* ── Add buttons ── */
 .btnRow {
   display: flex;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
-.btnCamera, .btnGallery {
+.btnCamera {
   flex: 1;
-  padding: 14px 10px;
-  font-size: 15px;
+  padding: 13px 10px;
+  font-size: 14px;
   font-weight: 700;
-  font-family: 'Rubik', sans-serif;
-  border-radius: 14px;
+  font-family: 'Playfair Display', serif;
+  border-radius: 50px;
   cursor: pointer;
   text-align: center;
   user-select: none;
   transition: opacity .15s;
-}
-.btnCamera:active, .btnGallery:active { opacity: .7; }
-
-.btnCamera {
-  background: linear-gradient(135deg, #b86a2a, #d4883a);
+  background: linear-gradient(135deg, #b8922e, #d4aa4a);
   color: #fff;
+  border: none;
+  box-shadow: 0 3px 12px rgba(160,120,30,.25);
 }
+
 .btnGallery {
-  background: #fdf3e7;
-  color: #b86a2a;
-  border: 2px solid #e8c49a;
+  flex: 1;
+  padding: 13px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  border-radius: 50px;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  transition: opacity .15s;
+  background: transparent;
+  color: #b8922e;
+  border: 1.5px solid rgba(200,168,76,.45);
 }
+
+.btnCamera:active, .btnGallery:active { opacity: .7; }
 
 /* ── Upload button ── */
 .uploadBtn {
   display: block;
   width: 100%;
-  padding: 16px;
-  font-size: 18px;
-  font-weight: 800;
-  font-family: 'Rubik', sans-serif;
-  background: linear-gradient(135deg, #b86a2a, #d4883a);
+  padding: 14px;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  background: linear-gradient(135deg, #b8922e, #d4aa4a, #c09030);
   color: #fff;
   border: none;
-  border-radius: 16px;
+  border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(180,100,40,.3);
-  margin-bottom: 10px;
+  box-shadow: 0 5px 18px rgba(160,120,30,.30);
+  margin-bottom: 8px;
   transition: transform .15s;
 }
 .uploadBtn:active { transform: scale(.97); }
 
 /* ── Uploading ── */
-.uploadingBox {
-  padding: 20px 0;
-}
-.spinner { font-size: 40px; animation: spin 1.5s linear infinite; }
+.uploadingBox { padding: 20px 0; }
+.spinner { font-size: 36px; animation: spin 1.5s linear infinite; display: block; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .uploadingText {
-  font-size: 16px;
-  font-weight: 600;
-  color: #b86a2a;
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  color: #b8922e;
   margin-top: 10px;
 }
 
 /* ── Done ── */
-.doneBox { margin: 10px 0; }
+.doneBox { margin: 8px 0; }
 .doneText {
+  font-family: 'Playfair Display', serif;
   font-size: 18px;
-  font-weight: 800;
-  color: #b86a2a;
+  font-weight: 700;
+  color: #b8922e;
+  line-height: 1.4;
 }
 
 /* ── Restart ── */
 .restartBtn {
-  background: none;
-  border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 8px 18px;
-  font-size: 13px;
+  background: transparent;
+  border: 1px solid rgba(200,168,76,.30);
+  border-radius: 50px;
+  padding: 8px 20px;
+  font-size: 12px;
   font-family: 'Rubik', sans-serif;
-  color: #999;
+  color: #b8922e;
   cursor: pointer;
   margin-top: 10px;
+  transition: background .15s;
 }
-.restartBtn:active { background: #f5f5f5; }
+.restartBtn:active { background: rgba(200,168,76,.08); }

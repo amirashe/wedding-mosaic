@@ -195,16 +195,17 @@ export default function UploadPage() {
             {/* Add buttons */}
             {remaining > 0 && (
               <div className={s.btnRow}>
-                <label className={s.btnCamera}>
+                <button className={s.btnCamera} onClick={() => cameraRef.current?.click()}>
                   📷 צלם
-                  <input ref={cameraRef} type="file" accept="image/*" capture="environment"
-                    onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
-                </label>
-                <label className={s.btnGallery}>
+                </button>
+                <input ref={cameraRef} type="file" accept="image/*" capture="environment"
+                  onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
+
+                <button className={s.btnGallery} onClick={() => galleryRef.current?.click()}>
                   🖼️ גלריה
-                  <input ref={galleryRef} type="file" accept="image/*" multiple
-                    onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
-                </label>
+                </button>
+                <input ref={galleryRef} type="file" accept="image/*" multiple
+                  onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
               </div>
             )}
 

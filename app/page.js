@@ -121,6 +121,25 @@ export default function UploadPage() {
   const totalUploaded = existing + uploaded.length
   const remaining     = MAX_UPLOADS - totalUploaded - staged.length
 
+  // Gallery — uses showOpenFilePicker (no Android Intent/app chooser) with fallback
+  const openGallery = async () => {
+    if (window.showOpenFilePicker) {
+      try {
+        const count   = Math.min(remaining, MAX_UPLOADS)
+        const handles = await window.showOpenFilePicker({
+          multiple: count > 1,
+          types: [{ description: 'Images', accept: { 'image/*': ['.jpg','.jpeg','.png','.gif','.webp','.heic'] } }],
+        })
+        const files = await Promise.all(handles.map(h => h.getFile()))
+        addFiles(files)
+      } catch (e) {
+        if (e.name !== 'AbortError') galleryRef.current?.click() // fallback
+      }
+    } else {
+      galleryRef.current?.click() // fallback for older browsers
+    }
+  }
+
   // ── Add photos ──────────────────────────────────────────────────────────────
   const addFiles = (files) => {
     const arr = Array.from(files || [])
@@ -210,7 +229,6 @@ export default function UploadPage() {
   // ── Splash screen ───────────────────────────────────────────────────────────
   if (stage === 'splash') return (
     <main className={s.main}>
-      <SamsungBlock />
       <PuzzleBackground />
       <div className={s.card}>
         <div className={s.splashEmoji}>📸</div>
@@ -233,7 +251,6 @@ export default function UploadPage() {
 
   return (
     <main className={s.main}>
-      <SamsungBlock />
       <PuzzleBackground />
       <div className={s.card}>
         <div className={s.emoji}>📸</div>
@@ -298,7 +315,7 @@ export default function UploadPage() {
                 <input ref={cameraRef} type="file" accept="image/*" capture="environment"
                   onChange={e => addFiles(e.target.files)} style={{ display: 'none' }} />
 
-                <button className={s.btnGallery} onClick={() => galleryRef.current?.click()}>
+                <button className={s.btnGallery} onClick={openGallery}>
                   🖼️ גלריה
                 </button>
                 <input ref={galleryRef} type="file" accept="image/*" multiple

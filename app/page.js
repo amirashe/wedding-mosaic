@@ -335,6 +335,7 @@ export default function UploadPage() {
             {stage === 'done' && staged.length === 0 && (
               <div className={s.doneBox}>
                 <p className={s.doneText}>🎉 אתם עכשיו חלק מהתמונה הגדולה!</p>
+                <p className={s.doneSubText}>אחרי האירוע נשלח אליכם את התמונה הגדולה שנוצרה 💛</p>
               </div>
             )}
 

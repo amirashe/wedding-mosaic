@@ -281,6 +281,13 @@
   font-weight: 700;
   color: #b8922e;
   line-height: 1.4;
+  margin-bottom: 10px;
+}
+.doneSubText {
+  font-size: 14px;
+  color: #8a6f4a;
+  line-height: 1.6;
+  font-weight: 300;
 }
 
 /* ── Restart ── */

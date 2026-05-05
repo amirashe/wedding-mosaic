@@ -62,6 +62,7 @@ export default function AdminPage() {
     minReuseDist: 7,
     ghostOpacity: 0.35,
     jpegQuality:  88,
+    gridSize:     50,
   })
 
   const setParam = (key, val) => setParams(p => ({ ...p, [key]: val }))
@@ -370,10 +371,19 @@ export default function AdminPage() {
               onChange={e => setParam('jpegQuality', parseInt(e.target.value))}
             />
           </div>
+          <div className={s.paramItem}>
+            <label className={s.paramLabel}>גודל גריד</label>
+            <div className={s.paramHint}>50×50 = 2500 טיילס · 60×60 = 3600</div>
+            <input
+              type="number" className={s.paramInput}
+              value={params.gridSize} min={20} max={80} step={5}
+              onChange={e => setParam('gridSize', parseInt(e.target.value))}
+            />
+          </div>
           <div className={s.paramItem} style={{ alignSelf: 'end' }}>
             <button
               className={s.resetBtn}
-              onClick={() => setParams({ blend: 0.28, varsPerImg: 3, minReuseDist: 7, ghostOpacity: 0.35, jpegQuality: 88 })}
+              onClick={() => setParams({ blend: 0.28, varsPerImg: 3, minReuseDist: 7, ghostOpacity: 0.35, jpegQuality: 88, gridSize: 50 })}
             >↺ ברירת מחדל</button>
           </div>
         </div>

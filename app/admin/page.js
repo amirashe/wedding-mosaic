@@ -56,6 +56,15 @@ export default function AdminPage() {
   const [mosaicError,     setMosaicError]     = useState('')
   const [progress,        setProgress]        = useState({ stage: '', current: 0, total: 1 })
   const [uploadingTarget, setUploadingTarget] = useState(false)
+  const [params, setParams] = useState({
+    blend:        0.28,
+    varsPerImg:   3,
+    minReuseDist: 7,
+    ghostOpacity: 0.35,
+    jpegQuality:  88,
+  })
+
+  const setParam = (key, val) => setParams(p => ({ ...p, [key]: val }))
 
   useEffect(() => {
     fetchImages()
@@ -154,7 +163,7 @@ export default function AdminPage() {
       const res    = await fetch('/api/mosaic', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ targetUrl }),
+        body:    JSON.stringify({ targetUrl, params }),
       })
 
       const reader  = res.body.getReader()
@@ -315,6 +324,60 @@ export default function AdminPage() {
             </button>
           </div>
         )}
+        <div className={s.paramsGrid}>
+          <div className={s.paramItem}>
+            <label className={s.paramLabel}>עוצמת גוון צבע</label>
+            <div className={s.paramHint}>0.1 = טבעי · 0.6 = חזק</div>
+            <input
+              type="number" className={s.paramInput}
+              value={params.blend} min={0.05} max={0.7} step={0.01}
+              onChange={e => setParam('blend', parseFloat(e.target.value))}
+            />
+          </div>
+          <div className={s.paramItem}>
+            <label className={s.paramLabel}>וריאציות לתמונה</label>
+            <div className={s.paramHint}>גיוון חיתוך לכל תמונה</div>
+            <input
+              type="number" className={s.paramInput}
+              value={params.varsPerImg} min={1} max={10} step={1}
+              onChange={e => setParam('varsPerImg', parseInt(e.target.value))}
+            />
+          </div>
+          <div className={s.paramItem}>
+            <label className={s.paramLabel}>מרחק שימוש חוזר</label>
+            <div className={s.paramHint}>מינימום טיילס בין פנים זהות</div>
+            <input
+              type="number" className={s.paramInput}
+              value={params.minReuseDist} min={1} max={25} step={1}
+              onChange={e => setParam('minReuseDist', parseInt(e.target.value))}
+            />
+          </div>
+          <div className={s.paramItem}>
+            <label className={s.paramLabel}>שקיפות דמות מרכז</label>
+            <div className={s.paramHint}>0 = רק מוזאיקה · 0.6 = דמות חזקה</div>
+            <input
+              type="number" className={s.paramInput}
+              value={params.ghostOpacity} min={0} max={0.7} step={0.01}
+              onChange={e => setParam('ghostOpacity', parseFloat(e.target.value))}
+            />
+          </div>
+          <div className={s.paramItem}>
+            <label className={s.paramLabel}>איכות JPEG</label>
+            <div className={s.paramHint}>70 = קל · 100 = מקסימום</div>
+            <input
+              type="number" className={s.paramInput}
+              value={params.jpegQuality} min={70} max={100} step={1}
+              onChange={e => setParam('jpegQuality', parseInt(e.target.value))}
+            />
+          </div>
+          <div className={s.paramItem} style={{ alignSelf: 'end' }}>
+            <button
+              className={s.resetBtn}
+              onClick={() => setParams({ blend: 0.28, varsPerImg: 3, minReuseDist: 7, ghostOpacity: 0.35, jpegQuality: 88 })}
+            >↺ ברירת מחדל</button>
+          </div>
+        </div>
+
         <button
           className={`${s.btn} ${s.btnPrimary} ${mosaicStatus === 'running' ? s.disabled : ''}`}
           onClick={generateMosaic}

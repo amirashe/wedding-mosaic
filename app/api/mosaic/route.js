@@ -2,7 +2,7 @@ import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { generateMosaic } from '@/lib/mosaic'
 
 export async function POST(request) {
-  const { targetUrl } = await request.json()
+  const { targetUrl, params } = await request.json()
   if (!targetUrl) return Response.json({ error: 'Missing targetUrl' }, { status: 400 })
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -26,7 +26,8 @@ export async function POST(request) {
         const mosaicBuffer = await generateMosaic(
           targetUrl,
           images,
-          (stage, current, total) => send(controller, { type: 'progress', stage, current, total })
+          (stage, current, total) => send(controller, { type: 'progress', stage, current, total }),
+          params
         )
 
         send(controller, { type: 'uploading' })
